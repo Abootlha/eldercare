@@ -42,6 +42,23 @@ export const Login = ({setIsAuth}) => {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/api/auth/google-request", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Google authentication URL is not available.");
+      }
+    } catch (err) {
+      console.log("Google Auth Error:", err.message);
+      toast.error("Google authentication failed. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-100 p-4">
       {/* Animated background circles */}
@@ -116,6 +133,7 @@ export const Login = ({setIsAuth}) => {
             {/* Google Sign In Button */}
             <button
               type="button"
+              onClick={handleGoogleAuth}
               className="w-full flex items-center justify-center py-3 px-4 bg-white/80 hover:bg-white/90 backdrop-blur-sm rounded-lg border border-gray-300 transition duration-200 ease-in-out transform hover:scale-105"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
