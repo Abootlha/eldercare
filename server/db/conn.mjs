@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import "dotenv/config";
 
 const connectionString = process.env.MONGODB_URI || "";
-console.log(connectionString)
 
 let dbInstance;
 

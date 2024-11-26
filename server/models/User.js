@@ -1,35 +1,43 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+const Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
+const user = new Schema({
+  role: { type: String, enum: ["Admin", "user"], required: true },
+  email: { type: String, required: true },
+  password: { type: String },
+  username: { type: String, required: true, unique: true },
+  name: { type: String },
+  photo: { type: String, default: null },
   role: {
     type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
+    required: true,
+    enum: ["admin", "user"],
+    default: "user",
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  accountType: {
+    type: String,
+    required: true,
+    enum: ["google", "local"],
+    default: "local",
   },
+  accountStatus: {
+    type: String,
+    required: true,
+    enum: ["active", "inactive"],
+    default: "active",
+  },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  isVerified: { type: Boolean, default: false },
+  // isDeleted: { type: Boolean, default: false } // soft delete
+  aadhaarCard: { type: String, required: false },
+  // membership: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: "Membership",
+  //   required: false,
+  // },
 });
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+const User = mongoose.model("User", user);
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
-export default mongoose.model('User', userSchema);
+export default User;
