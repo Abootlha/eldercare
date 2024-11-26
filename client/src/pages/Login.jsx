@@ -1,63 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Lock, User } from "lucide-react";
 
-export const Login = ({setIsAuth}) => {
+export const Login = ({ setIsAuth }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isGoogleAuth, setIsGoogleAuth] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
-      const response = await fetch("http://localhost:3001/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          emailOrUsername: username,
-          password: password,
-        }),
-      });
-  
-      const data = await response.json();
-      console.log("Login Response:", data); 
-  
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+      if (isGoogleAuth) {
+        // Handle Google Authentication
+        const res = await fetch("http://localhost:3001/api/auth/google-request", {
+          method: "GET",
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error("Google authentication URL is not available.");
+        }
+      } else {
+        // Handle Username and Password Authentication
+        const response = await fetch("http://localhost:3001/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            emailOrUsername: username,
+            password: password,
+          }),
+        });
+
+        const data = await response.json();
+        console.log("Login Response:", data);
+
+        if (!response.ok) {
+          throw new Error(data.message || "Something went wrong");
+        }
+
+        // Store token and navigate
+        localStorage.setItem("authToken", data.token);
+        toast.success("Successfully logged in!");
+        setIsAuth(true);
+        navigate("/dashboard");
       }
-  
-      // Store token and navigate
-      localStorage.setItem("authToken", data.token);
-      toast.success("Successfully logged in!");
-      setIsAuth(true); 
-      navigate("/dashboard"); 
     } catch (error) {
+      console.error("Authentication Error:", error.message);
       toast.error(error.message);
     }
   };
 
-  const handleGoogleAuth = async () => {
-    try {
-      const res = await fetch("http://localhost:3001/api/auth/google-request", {
-        method: "GET",
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("Google authentication URL is not available.");
-      }
-    } catch (err) {
-      console.log("Google Auth Error:", err.message);
-      toast.error("Google authentication failed. Please try again.");
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    console.log("Full URL:", window.location.href);
+    console.log("URL Params:", urlParams.toString());
+    console.log("Extracted token:", token);
+
+    if (token) {
+      localStorage.setItem("authToken", token);
+      toast.success("Google authentication successful!");
+      setIsAuth(true);
+      navigate("/dashboard");
     }
-  };
+  }, [navigate, setIsAuth]);  // Dependency array updated to ensure it only runs when URL parameters change
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-100 p-4">
@@ -73,13 +88,14 @@ export const Login = ({setIsAuth}) => {
         <div className="backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl border border-white/20">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Sign in to your account</h2>
-            <p className="text-gray-600 mt-2">Don't have an account?{" "}
-            <a
-            onClick={() => navigate("/signup")}
-            className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
-            >
-            Sign up
-            </a>
+            <p className="text-gray-600 mt-2">
+              Don't have an account?{" "}
+              <a
+                onClick={() => navigate("/signup")}
+                className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
+              >
+                Sign up
+              </a>
             </p>
           </div>
 
@@ -115,6 +131,7 @@ export const Login = ({setIsAuth}) => {
             {/* Submit Button */}
             <button
               type="submit"
+              onClick={() => setIsGoogleAuth(false)}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out transform hover:scale-105"
             >
               Sign in
@@ -132,8 +149,8 @@ export const Login = ({setIsAuth}) => {
 
             {/* Google Sign In Button */}
             <button
-              type="button"
-              onClick={handleGoogleAuth}
+              type="submit"
+              onClick={() => setIsGoogleAuth(true)}
               className="w-full flex items-center justify-center py-3 px-4 bg-white/80 hover:bg-white/90 backdrop-blur-sm rounded-lg border border-gray-300 transition duration-200 ease-in-out transform hover:scale-105"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -163,4 +180,4 @@ export const Login = ({setIsAuth}) => {
   );
 };
 
-export default Login
+export default Login;

@@ -10,12 +10,14 @@ import { MissingPersonForm } from "./pages/MissingPersonForm";
 import { SignLanguage } from "./pages/SignLanguage";
 import { MedicalData } from "./pages/MedicalData";
 import { AdminPanel } from "./pages/AdminPanel";
+import GoogleAuthSuccess from "./pages/GoogleAuthSuccess"; // Import the new component
 
 function App() {
   const [isAuth, setIsAuth] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Check authentication status and user role
   const checkAuth = () => {
     const token = localStorage.getItem("authToken");
     if (!token) return { isAuthenticated: false, isAdmin: false };
@@ -26,7 +28,8 @@ function App() {
         isAuthenticated: true,
         isAdmin: userData?.role === "admin", // Validate admin role
       };
-    } catch {
+    } catch (error) {
+      console.error("Error parsing user role:", error);
       return { isAuthenticated: false, isAdmin: false };
     }
   };
@@ -38,7 +41,7 @@ function App() {
     setLoading(false);
   }, []);
 
-  if (loading) return <div>Loading...</div>; // Replace with a spinner or a loading component
+  if (loading) return <div>Loading...</div>; // Replace with a spinner or loading component
 
   return (
     <Router>
@@ -49,9 +52,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route
               path="/login"
-              element={
-                isAuth ? <Navigate to="/" /> : <Login setIsAuth={setIsAuth} />
-              }
+              element={isAuth ? <Navigate to="/" /> : <Login setIsAuth={setIsAuth} />}
             />
             <Route
               path="/signup"
@@ -75,9 +76,9 @@ function App() {
             />
             <Route
               path="/admin"
-              element={
-                isAuth && isAdmin ? <AdminPanel /> : <Navigate to="/login" />
-              }
+              element={isAuth && isAdmin ? <AdminPanel /> : <Navigate to="/login" />}
+            />
+            <Route path="/google-auth-success" element={<GoogleAuthSuccess setIsAuth={setIsAuth} />} // Add the new Google auth success route here
             />
           </Routes>
         </div>

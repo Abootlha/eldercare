@@ -362,7 +362,6 @@ router.get("/google", async (req, res) => {
         process.env.JWT_SECRET
       );
     } else {
-
       const newUser = new User({
         name: userData.name,
         email: userData.email,
@@ -374,13 +373,13 @@ router.get("/google", async (req, res) => {
         isVerified: true,
       });
 
-
       const savedUser = await newUser.save();
       token = jwt.sign(
         { username: savedUser.username, email: savedUser.email },
         process.env.JWT_SECRET
       );
     }
+
     return res.redirect(
       `${process.env.CLIENT_URL}/google-auth-success?token=${token}`
     );
@@ -389,6 +388,7 @@ router.get("/google", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // functions
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
