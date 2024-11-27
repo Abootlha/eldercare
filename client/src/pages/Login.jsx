@@ -1,5 +1,5 @@
 import React, { useState, useEffect  } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link  } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { Lock, User } from "lucide-react";
@@ -127,6 +127,19 @@ export const Login = ({ setIsAuth }) => {
                 placeholder="Password"
               />
             </div>
+
+             {/* Forgot Password Link */}
+            <div className="text-right">
+              <button
+                onClick={() => navigate("/forgotpassword")}
+                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              >
+                Forgot your password?
+              </button>
+            </div>
+
+
 
             {/* Submit Button */}
             <button

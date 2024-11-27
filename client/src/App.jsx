@@ -10,12 +10,16 @@ import { MissingPersonForm } from "./pages/MissingPersonForm";
 import { SignLanguage } from "./pages/SignLanguage";
 import { MedicalData } from "./pages/MedicalData";
 import { AdminPanel } from "./pages/AdminPanel";
-import GoogleAuthSuccess from "./pages/GoogleAuthSuccess"; // Import the new component
+import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { SplashScreen } from "./pages/SplashScreen"; 
+import Footer from "./components/Footer";
 
 function App() {
   const [isAuth, setIsAuth] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true); 
 
   // Check authentication status and user role
   const checkAuth = () => {
@@ -23,10 +27,10 @@ function App() {
     if (!token) return { isAuthenticated: false, isAdmin: false };
 
     try {
-      const userData = JSON.parse(localStorage.getItem("userRole")); // Example user data storage
+      const userData = JSON.parse(localStorage.getItem("userRole")); 
       return {
         isAuthenticated: true,
-        isAdmin: userData?.role === "admin", // Validate admin role
+        isAdmin: userData?.role === "admin",
       };
     } catch (error) {
       console.error("Error parsing user role:", error);
@@ -34,14 +38,24 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    const { isAuthenticated, isAdmin } = checkAuth();
-    setIsAuth(isAuthenticated);
-    setIsAdmin(isAdmin);
+  const handleSplashComplete = (isAuthenticated) => {
+    const { isAuthenticated: authStatus, isAdmin: adminStatus } = checkAuth();
+    setIsAuth(authStatus);
+    setIsAdmin(adminStatus);
     setLoading(false);
-  }, []);
+    setShowSplash(false); 
+  };
 
-  if (loading) return <div>Loading...</div>; // Replace with a spinner or loading component
+  useEffect(() => {
+    if (!showSplash) {
+      const { isAuthenticated, isAdmin } = checkAuth();
+      setIsAuth(isAuthenticated);
+      setIsAdmin(isAdmin);
+      setLoading(false);
+    }
+  }, [showSplash]);
+
+  if (loading || showSplash) return <SplashScreen onComplete={handleSplashComplete} />; 
 
   return (
     <Router>
@@ -50,6 +64,7 @@ function App() {
         <div className="pt-16">
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route
               path="/login"
               element={isAuth ? <Navigate to="/" /> : <Login setIsAuth={setIsAuth} />}
@@ -78,10 +93,10 @@ function App() {
               path="/admin"
               element={isAuth && isAdmin ? <AdminPanel /> : <Navigate to="/login" />}
             />
-            <Route path="/google-auth-success" element={<GoogleAuthSuccess setIsAuth={setIsAuth} />} // Add the new Google auth success route here
-            />
+            <Route path="/google-auth-success" element={<GoogleAuthSuccess setIsAuth={setIsAuth} />} />
           </Routes>
         </div>
+        <Footer isAuth={isAuth} setIsAuth={setIsAuth} />
         <Toaster position="top-right" />
       </div>
     </Router>
