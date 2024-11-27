@@ -17,7 +17,7 @@ export const Login = ({ setIsAuth }) => {
     try {
       if (isGoogleAuth) {
         // Handle Google Authentication
-        const res = await fetch("http://localhost:3001/api/auth/google-request", {
+        const res = await fetch("https://eldercare-5xuc.onrender.com/api/auth/google-request", {
           method: "GET",
         });
         const data = await res.json();
@@ -28,7 +28,7 @@ export const Login = ({ setIsAuth }) => {
         }
       } else {
         // Handle Username and Password Authentication
-        const response = await fetch("http://localhost:3001/api/auth/login", {
+        const response = await fetch("https://eldercare-5xuc.onrender.com/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

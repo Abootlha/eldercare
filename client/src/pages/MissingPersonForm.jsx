@@ -40,7 +40,7 @@ export const MissingPersonForm = () => {
         return;
       }
   
-      const response = await fetch("http://localhost:3001/api/report/missing-persons", {
+      const response = await fetch("https://eldercare-5xuc.onrender.com/api/report/missing-persons", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -138,7 +138,7 @@ export const MissingPersonForm = () => {
         return;
       }
   
-      const response = await fetch('http://localhost:3001/api/report/upload-data', {
+      const response = await fetch('https://eldercare-5xuc.onrender.com/api/report/upload-data', {
         method: 'POST',
         body: form,
         headers: {

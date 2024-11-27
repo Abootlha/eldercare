@@ -25,7 +25,7 @@ const Signup = () => {
     console.log('Submitting data:', { email, name, password, username });
 
     try {
-      const response = await axios('http://localhost:3001/api/auth/register', {
+      const response = await axios('https://eldercare-5xuc.onrender.com/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
