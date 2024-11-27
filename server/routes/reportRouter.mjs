@@ -1,16 +1,20 @@
 import express from "express";
+import bodyParser from "body-parser";  // If you are using body-parser
+import multer from "multer";           // If you're using multer
+import { CloudinaryStorage } from "multer-storage-cloudinary"; 
+import { v2 as cloudinary } from "cloudinary";
 import MissingPerson from "../models/missingReport.mjs"; 
 import { getDb } from "../db/conn.mjs";
-import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { v2 as cloudinary } from "cloudinary";
-import { v4 as uuidv4 } from "uuid";
+
+// Express setup
+const app = express();
 
 const router = express.Router();
+// Body parser setup with limit
+app.use(bodyParser.json({ limit: "50mb" }));  // Limit for JSON body (adjust as necessary)
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-// ---------------------------------------------------------------------------//
-// Set up Multer storage and file handling
-// cloudinary configuration
+// Cloudinary config
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -18,38 +22,36 @@ cloudinary.config({
     secure: true,
 });
 
-// multer configuration
+// Multer configuration for file upload limits
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: "mediaFiles", 
         resource_type: "auto", 
-        chunk_size: 6000000,  
+        chunk_size: 6000000,  // Limits per file (6MB)
         transformation: [
-            {
+            { 
                 quality: 'auto:low', 
-                width: 1280,            
-                height: 720,           
-                bitrate: '500k', 
-            },
+                width: 1280, 
+                height: 720, 
+                bitrate: '500k' 
+            }
         ],
     },
 });
 
-const upload = multer({ storage });
-//------------------------------------------------------------------------------
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }  // Limit each file to 10MB (adjust as needed)
+});
 
+// Route for file upload and report creation
 router.post("/upload-data", upload.fields([{ name: "Image", maxCount: 1 }]), async (req, res) => {
     try {
         const db = getDb().connection;
         let { fullName, age, lastSeenDate, description, contactInfo } = req.body;
 
-        console.log('Request body:', req.body);
-        console.log('Request files:', req.files);
-
-        const CurrUser = await db
-            .collection("users")
-            .findOne({ username: req.user.username });
+        const CurrUser = await db.collection("users").findOne({ username: req.user.username });
 
         if (!CurrUser) {
             return res.status(400).json({ message: "Unauthorized Access" });
@@ -81,7 +83,6 @@ router.post("/upload-data", upload.fields([{ name: "Image", maxCount: 1 }]), asy
         }
 
         const imageFile = req.files.Image[0];
-        
         const imageUrl = imageFile.secure_url || imageFile.path;
 
         if (!imageUrl) {
@@ -105,14 +106,12 @@ router.post("/upload-data", upload.fields([{ name: "Image", maxCount: 1 }]), asy
             reportedBy: CurrUser._id
         });
 
-        // Save the new missing person data to MongoDB
         const result = await missingPersonData.save();
 
-        // Respond with a success message
         res.status(200).json({
             message: "Missing person data uploaded successfully",
             reportId: result._id,
-            imageUrl: imageUrl // Send back the image URL for verification
+            imageUrl: imageUrl
         });
     } catch (err) {
         console.error('Complete upload error:', err);
@@ -122,6 +121,7 @@ router.post("/upload-data", upload.fields([{ name: "Image", maxCount: 1 }]), asy
         });
     }
 });
+
 
 router.get('/missing-persons', async (req, res) => {
     try {

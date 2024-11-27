@@ -50,9 +50,6 @@ export const MissingPersonForm = () => {
   
       const data = await response.json();
   
-      // Debugging logs
-      console.log("Raw response data:", data);
-      console.log("Response status:", response.status);
   
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch missing persons");
@@ -61,7 +58,6 @@ export const MissingPersonForm = () => {
       // Flexible data extraction
       const missingPersonsList = data.data || data.missingPersons || data;
       
-      console.log("Processed missing persons list:", missingPersonsList);
   
       // Ensure we're setting an array
       setMissingPersons(Array.isArray(missingPersonsList) ? missingPersonsList : []);
@@ -105,54 +101,64 @@ export const MissingPersonForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const token = localStorage.getItem("authToken");
+    
+    const token = localStorage.getItem('authToken');
     if (!token) {
-      toast.error("Authentication token is missing");
+      toast.error('Authentication token is missing');
       return;
     }
-
-    setLoading(true);
-
+  
     try {
       const form = new FormData();
-      form.append("name", formData.name);
-      form.append("age", formData.age);
-      form.append("lastSeen", formatDate(formData.lastSeen));
-      form.append("description", formData.description);
-      form.append("contactInfo", formData.contactInfo);
-
+      form.append('fullName', formData.name);
+      form.append('age', formData.age);
+      
+      // Format date to match backend expectation
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
+      form.append('lastSeenDate', formatDate(formData.lastSeen));
+      
+      form.append('description', formData.description);
+      form.append('contactInfo', formData.contactInfo);
+      
+      // Debugging: log file before appending
+      console.log('Image file to upload:', formData.image);
+      
+      // Ensure 'Image' matches backend expectation
       if (formData.image) {
-        form.append("image", formData.image, formData.image.name);
+        form.append('Image', formData.image, formData.image.name);
       } else {
-        toast.error("Please select an image.");
-        setLoading(false);
+        console.error('No image selected');
+        toast.error('Please select an image');
         return;
       }
-
-      const response = await fetch("http://localhost:3001/api/report/upload-data", {
-        method: "POST",
+  
+      const response = await fetch('http://localhost:3001/api/report/upload-data', {
+        method: 'POST',
         body: form,
         headers: {
-          "Authorization": `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
-
+  
       const responseData = await response.json();
-
+  
       if (!response.ok) {
-        toast.error(responseData.message || "Failed to submit the report.");
+        console.error('Upload error response:', responseData);
+        toast.error(responseData.message || 'Submission failed');
         return;
       }
-
-      toast.success("Report submitted successfully!");
-      navigate("/dashboard/reports");
-      fetchMissingPersons(); // Reload the missing persons list
+  
+      toast.success('Report submitted successfully');
+      navigate('/dashboard/reports');
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error("Failed to submit the report.");
-    } finally {
-      setLoading(false);
+      console.error('Submission error:', error);
+      toast.error('Failed to submit report');
     }
   };
 
