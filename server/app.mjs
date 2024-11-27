@@ -10,6 +10,7 @@ import authRouter from "./routes/authRouter.mjs"
 import adminRouter from "./routes/adminRouter.mjs"
 import userRouter from "./routes/userRouter.mjs"
 import requireAuth from "./middleware/requireAuth.mjs"
+import reportRouter from "./routes/reportRouter.mjs"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/report", requireAuth,reportRouter);
 app.use("/api/admin", requireAuth, adminRouter);
 app.use("/api/user", requireAuth, userRouter);
 // Connect to MongoDB and start server
