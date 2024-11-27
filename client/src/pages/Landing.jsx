@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Heart, User, FileText, Activity, Phone, Mail, MapPin } from 'lucide-react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 export const Landing = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -12,6 +15,7 @@ export const Landing = () => {
       easing: 'ease-out'
     });
   }, []);
+
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -40,9 +44,12 @@ export const Landing = () => {
             sign language support, and secure medical data management.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/signup" className="btn-primary animate-bounce">
+          <button
+              onClick={() => navigate('/login')}
+              className="btn-primary animate-bounce"
+            >
               Get Started
-            </Link>
+            </button>
             <button 
               onClick={() => scrollToSection('services')} 
               className="btn-secondary hover:scale-105 transform transition-transform"
